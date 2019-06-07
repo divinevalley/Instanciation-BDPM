@@ -3,7 +3,7 @@ package bdpm;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DosedSpecificComponent implements IAddDosedSpecificIngredient, IDosedComponent {
+public class DosedSpecificComponent implements IAddDosedSpecificIngredient, IHasMapKey {
 	
 	Map<SpecificIngredient, Dose> specificIngredsAndDoses = new HashMap<SpecificIngredient, Dose>();
 	DosedComponent dosedComponentBelongsTo = new DosedComponent();

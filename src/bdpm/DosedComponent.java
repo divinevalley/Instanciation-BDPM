@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class DosedComponent implements IDosedComponent, IAddDosedIngredient  {
+public class DosedComponent implements IHasMapKey, IAddDosedIngredient  {
 	 
 	Map<Ingredient,Dose> ingredientsAndDoses = new HashMap<Ingredient,Dose>();
 	Set<DosedSpecificComponent> matchingDosedSpecificComponents = new HashSet<DosedSpecificComponent>();

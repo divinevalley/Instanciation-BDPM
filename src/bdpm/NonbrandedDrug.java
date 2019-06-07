@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class NonbrandedDrug implements IDosedComponent, IFormedComponent, IAddSpecIngredient, IAddIngredient, IAddDosedSpecificIngredient, IAddDosedIngredient { 
+public class NonbrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient, IAddIngredient, IAddDosedSpecificIngredient, IAddDosedIngredient { 
 	FormedComponent formedComponent = new FormedComponent(); //for multiple inheritance, FormedComponent is like another superclass of NonBrandedDrug 
 	DosedComponent dosedComponent = new DosedComponent(); //this object will contain the map of DosedIngredients
 	DosedSpecificComponent dosedSpecificComponent = new DosedSpecificComponent();

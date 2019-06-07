@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class BrandedDosedComponent implements IBrandName, IDosedComponent, IAddDosedIngredient {
+public class BrandedDosedComponent implements IBrandName, IHasMapKey, IAddDosedIngredient {
 
 	BrandName brandName = new BrandName();
 	Map<Ingredient,Dose> ingredientsAndDoses = new HashMap<Ingredient,Dose>();

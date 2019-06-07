@@ -3,7 +3,7 @@ package bdpm;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BrandedFormedComponent implements IBrandName, IFormedComponent, IAddIngredient{
+public class BrandedFormedComponent implements IBrandName, IHasForm, IAddIngredient{
 	Form form = new Form();
 	Set<Ingredient> containedIngredients = new HashSet<Ingredient>();
 	Set<BrandedFormedSpecificComponent> matchingBrandedFormedSpecificComponents = new HashSet<BrandedFormedSpecificComponent>();

@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-public class BrandedDrug implements IDosedComponent, IFormedComponent, IAddSpecIngredient, IAddIngredient, IAddDosedSpecificIngredient, IAddDosedIngredient { 
+public class BrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient, IAddIngredient, IAddDosedSpecificIngredient, IAddDosedIngredient { 
 	String brandedDrugId;
 	String label;
 	BrandName brandName = new BrandName(); 

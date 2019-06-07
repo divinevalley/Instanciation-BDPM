@@ -1,9 +1,7 @@
 package bdpm;
 
 
-public interface IFormedComponent {
-
-	public String generateMapKey();
+public interface IHasForm {
 
 	public Form getForm();
 

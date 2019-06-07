@@ -3,7 +3,7 @@ package bdpm;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FormedSpecificComponent implements IAddSpecIngredient, IFormedComponent{
+public class FormedSpecificComponent implements IAddSpecIngredient, IHasForm, IHasMapKey {
 	
 	Form form = new Form();
 	Set<SpecificIngredient> containedSpecificIngredients = new HashSet<SpecificIngredient>();
