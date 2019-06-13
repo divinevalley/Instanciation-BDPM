@@ -13,6 +13,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
@@ -55,8 +57,9 @@ public class Main {
 
 	public static void main(String[] args) throws FileNotFoundException {
 
-		//create Branded Drugs
 		try {
+			int nbNeedToChange = 0; //track number of brand names that didn't go through regex properly
+				
 			String query = "SELECT DISTINCT cis.CodeCIS, cis.Denomination, cis.FormePharma, cis_compo.DesignationElementPharma, cis_compo.DosageSubstance, cis_compo.DenomSubstance, "
 					+ "cis_compo.NatureComposant, cis_compo.CodeSubstance, cis_gener.LibelleGrpGener "
 					+ "FROM (`cis` LEFT OUTER JOIN cis_compo ON cis.CodeCIS=cis_compo.CodeCIS LEFT OUTER JOIN cis_gener ON cis_gener.CodeCIS=cis_compo.CodeCIS)";
@@ -69,9 +72,26 @@ public class Main {
 				String doseLabel=res.getString("DosageSubstance") == null ? "" : res.getString("DosageSubstance").trim();
 				String formLabel=res.getString("FormePharma") == null ? "" : res.getString("FormePharma").trim();
 				String brandedDrugId=res.getString("CodeCIS") == null ? "" : res.getString("CodeCIS");
-				String drugLabel=res.getString("LibelleGrpGener") == null ? "" : res.getString("LibelleGrpGener");
+				String drugLabel=res.getString("Denomination") == null ? "" : res.getString("Denomination");
 				String brandLabel=res.getString("Denomination") == null ? "" : res.getString("Denomination");
 				String natureComposant=res.getString("NatureComposant") == null ? "" : res.getString("NatureComposant");
+				
+				//regex to extract brand names
+				Pattern pattern = Pattern.compile("\\b[A-Z0-9Ï'/.-]+[A-ZÏ'/\\s.-]+\\b"); //numbers okay for first word; once there's a space, no more numbers allowed
+				Matcher matcher = pattern.matcher(brandLabel);
+				
+				if (matcher.find()) {
+					String foundString = matcher.group();			    
+				    if(foundString.equals(" ")||foundString.length()<3){
+				    	//regex couldn't find brandname. don't change brandLabel
+				    	brandLabel += " *need to change!";
+				    	nbNeedToChange++;
+				    } else {
+					    brandLabel = foundString.trim();				    	
+				    }
+
+				}
+				
 				//create Dose from "dosagesubstance" column 
 				Dose dose = Ontology.findOrCreateDose(doseLabel);
 
@@ -134,19 +154,21 @@ public class Main {
 			
 			
 			//write to CSV 
-//			Utils.writeIngredientsToCSV(Ontology.ingredientMap, "ingredients");
-//			Utils.writeSpecificIngredientsToCSV(Ontology.specificIngredientMap);
-//			Utils.writeBrandedDrugsToCSV(Ontology.brandedDrugMap);
-//			Utils.writeNonbrandedDrugsToCSV(Ontology.nonbrandedDrugMap);
-//			Utils.writeDosedComponentsToCSV(Ontology.dosedComponentMap);
-//			Utils.writeFormedComponentsToCSV(Ontology.formedComponentMap);
-//			Utils.writeDosedSpecificComponentsToCSV(Ontology.dosedSpecificComponentMap);
-//			Utils.writeFormedSpecificComponentsToCSV(Ontology.formedSpecificComponentMap);
-//			Utils.writeBrandedDosedComponentsToCSV(Ontology.brandedDosedComponentMap);
-//			Utils.writeBrandedFormedComponentsToCSV(Ontology.brandedFormedComponentMap);
-//			Utils.writeBrandedDosedSpecificComponentsToCSV(Ontology.brandedDosedSpecificComponentMap);
-//			Utils.writeBrandedFormedSpecificComponentsToCSV(Ontology.brandedFormedSpecificComponentMap);
-//			System.out.println("Maps written to CSVs");
+			Utils.writeIngredientsToCSV(Ontology.ingredientMap, "ingredients");
+			Utils.writeSpecificIngredientsToCSV(Ontology.specificIngredientMap);
+			Utils.writeBrandedDrugsToCSV(Ontology.brandedDrugMap);
+			Utils.writeNonbrandedDrugsToCSV(Ontology.nonbrandedDrugMap);
+			Utils.writeDosedComponentsToCSV(Ontology.dosedComponentMap);
+			Utils.writeFormedComponentsToCSV(Ontology.formedComponentMap);
+			Utils.writeDosedSpecificComponentsToCSV(Ontology.dosedSpecificComponentMap);
+			Utils.writeFormedSpecificComponentsToCSV(Ontology.formedSpecificComponentMap);
+			Utils.writeBrandedDosedComponentsToCSV(Ontology.brandedDosedComponentMap);
+			Utils.writeBrandedFormedComponentsToCSV(Ontology.brandedFormedComponentMap);
+			Utils.writeBrandedDosedSpecificComponentsToCSV(Ontology.brandedDosedSpecificComponentMap);
+			Utils.writeBrandedFormedSpecificComponentsToCSV(Ontology.brandedFormedSpecificComponentMap);
+			System.out.println("Maps written to CSVs");
+			
+			System.out.println("Number of brandnames needed to be changed: " + nbNeedToChange);
 
 //			
 //			
