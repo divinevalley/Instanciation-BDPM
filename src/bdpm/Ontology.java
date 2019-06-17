@@ -59,6 +59,16 @@ public class Ontology {
 		}
 		return matchingDose;
 	}
+	
+	static Dose findOrCreateDose(String doseNumber, String unitLabel) {
+		String key = doseNumber + unitLabel; //create map key
+		Dose matchingDose = doseMap.get(key); //find matching Dose
+		if (matchingDose == null) { //if doesn't exist, create it, then find it
+			matchingDose = new Dose(doseNumber, unitLabel);
+			doseMap.put(key, matchingDose);
+		}
+		return matchingDose;
+	}
 
 	static Ingredient findOrCreateIngredient(String codeSubstance, String ingredientName){
 		Ingredient matchingIngredient = ingredientMap.get(codeSubstance); //find matching Ingredient, codeSubstance is map key

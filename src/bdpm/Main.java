@@ -56,9 +56,9 @@ import org.semanticweb.owlapi.util.OWLOntologyWalkerVisitor;
 public class Main {
 
 	public static void main(String[] args) throws FileNotFoundException {
+		
 
 		try {
-			int nbNeedToChange = 0; //track number of brand names that didn't go through regex properly
 				
 			String query = "SELECT DISTINCT cis.CodeCIS, cis.Denomination, cis.FormePharma, cis_compo.DesignationElementPharma, cis_compo.DosageSubstance, cis_compo.DenomSubstance, "
 					+ "cis_compo.NatureComposant, cis_compo.CodeSubstance, cis_gener.LibelleGrpGener "
@@ -68,38 +68,23 @@ public class Main {
 			while(res.next()){ 
 				//name the pertinent columns as Strings
 				String codeSubstance=res.getString("CodeSubstance") == null ? "" : res.getString("CodeSubstance");
-				String ingredientName=res.getString("DenomSubstance") == null ? "" : res.getString("DenomSubstance").trim();
+				String ingredientName=res.getString("DenomSubstance") == null ? "" : res.getString("DenomSubstance").trim().toLowerCase();
 				String doseLabel=res.getString("DosageSubstance") == null ? "" : res.getString("DosageSubstance").trim();
 				String formLabel=res.getString("FormePharma") == null ? "" : res.getString("FormePharma").trim();
 				String brandedDrugId=res.getString("CodeCIS") == null ? "" : res.getString("CodeCIS");
-				String drugLabel=res.getString("Denomination") == null ? "" : res.getString("Denomination");
-				String brandLabel=res.getString("Denomination") == null ? "" : res.getString("Denomination");
+				String drugLabel=res.getString("Denomination") == null ? "" : res.getString("Denomination"); //original full label
+				String brandLabel=res.getString("Denomination") == null ? "" : res.getString("Denomination"); //brandname will be extracted from here
 				String natureComposant=res.getString("NatureComposant") == null ? "" : res.getString("NatureComposant");
 				
-				//regex to extract brand names
-				Pattern pattern = Pattern.compile("\\b[A-Z0-9Ï'/.-]+[A-ZÏ'/\\s.-]+\\b"); //numbers okay for first word; once there's a space, no more numbers allowed
-				Matcher matcher = pattern.matcher(brandLabel);
 				
-				if (matcher.find()) {
-					String foundString = matcher.group();			    
-				    if(foundString.equals(" ")||foundString.length()<3){
-				    	//regex couldn't find brandname. don't change brandLabel
-				    	brandLabel += " *need to change!";
-				    	nbNeedToChange++;
-				    } else {
-					    brandLabel = foundString.trim();				    	
-				    }
-
-				}
-				
-				//create Dose from "dosagesubstance" column 
-				Dose dose = Ontology.findOrCreateDose(doseLabel);
+				//separate dose from unit and create dose
+				Dose dose = Utils.splitDoseAndUnitAndCreateDose(doseLabel);
 
 				//create Form from "formepharma" column 
 				Form form = Ontology.findOrCreateForm(formLabel);
 
-				//create BrandName from each new brandLabel "denomination" column and add to this BrandedDrug
-				BrandName brandName = Ontology.findOrCreateBrandName(brandLabel); 
+				//create BrandName from each regex extracted brandLabel column
+				BrandName brandName = Utils.extractBrandNameAndCreateBrandName(brandLabel); 
 
 				//we have enough information now to get or create Clinical Drug 
 				BrandedDrug brandedDrug = Ontology.findOrCreateBrandedDrug(brandedDrugId, drugLabel, form, brandName);
@@ -109,13 +94,11 @@ public class Main {
 
 					//get or create Ingredient from "denomsubstance" column 
 					Ingredient ingredient = Ontology.findOrCreateIngredient(codeSubstance, ingredientName);
-
+					
 					//add Ingredient to clinicaldrug
 					brandedDrug.addIngredientWithDose(ingredient, dose);
 
-
-				}else if (natureComposant.equals("SA")){
-					//it the column reads 'SA', add as SpecificIngredient...
+				}else if (natureComposant.equals("SA")){ //if the column reads 'SA', add as SpecificIngredient...
 
 					//get or create SpecificIngredient from "denomsubstance" column 
 					SpecificIngredient specificIngredient = Ontology.findOrCreateSpecificIngredient(codeSubstance, ingredientName);
@@ -125,6 +108,14 @@ public class Main {
 
 				} else {
 					System.out.println("ingredient not labeled SA nor FT");	
+				}
+				
+				//tag all brandedDrugs that need dose checking
+				if (dose.needsChecking==true){
+					brandedDrug.doseNeedsChecking=true;
+				}
+				if (brandName.labelNeedsChecking==true){
+					brandedDrug.brandNameNeedsChecking=true;
 				}
 
 
@@ -167,8 +158,7 @@ public class Main {
 			Utils.writeBrandedDosedSpecificComponentsToCSV(Ontology.brandedDosedSpecificComponentMap);
 			Utils.writeBrandedFormedSpecificComponentsToCSV(Ontology.brandedFormedSpecificComponentMap);
 			System.out.println("Maps written to CSVs");
-			
-			System.out.println("Number of brandnames needed to be changed: " + nbNeedToChange);
+
 
 //			
 //			

@@ -10,6 +10,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -18,6 +20,62 @@ import java.io.OutputStreamWriter;
 public class Utils {
 	private static final String CSV_SEPARATOR = ";";
 	private static final String CSV_DOSE_SEPARATOR = "|";
+	
+	//generic regex function
+	static String matchRegex(String regexPattern, String inputString){
+		Pattern pattern = Pattern.compile(regexPattern);
+		Matcher matcher = pattern.matcher(inputString);
+		if (matcher.find()){
+			return matcher.group();
+		} else {
+			return "";
+		}
+	}
+	
+	//regex to extract brand name
+	static BrandName extractBrandNameAndCreateBrandName(String brandLabel){
+		String foundString = matchRegex("\\b[A-Z0-9Ï'/.-]+[A-ZÏ'/\\s.-]+\\b", brandLabel);
+		String unchanged = brandLabel + " *need to change!";    
+		BrandName brandName;
+	    if(foundString.equals(" ")||foundString.length()<3){ //regex couldn't find brandname as desired. don't change brandLabel
+	    	brandLabel = unchanged;
+	    	brandName = Ontology.findOrCreateBrandName(brandLabel);
+	    	brandName.labelNeedsChecking = true;//tag for check
+	    } else {
+		    brandLabel = foundString.trim();
+		    brandName = Ontology.findOrCreateBrandName(brandLabel); 
+	    }
+		return brandName;
+	}
+	
+	static Dose splitDoseAndUnitAndCreateDose(String doseLabel){
+		String[] doseAndUnitSegments = doseLabel.split("(?=\\s[mglicGLIUCµ])", 2); //split and keep the delimiter to the right 
+		Unit unit = doseAndUnitSegments.length<2 ? new Unit("") : new Unit(doseAndUnitSegments[1].trim());
+		Dose dose = Ontology.findOrCreateDose(doseAndUnitSegments[0], unit.unitLabel);
+		//if split was impossible OR if any part is too long OR dose part has letters
+		if (doseAndUnitSegments.length==1 || doseAndUnitSegments[doseAndUnitSegments.length-1].trim().length()>12 || !doseAndUnitSegments[0].matches("[^a-zA-Z]+")){ 
+			dose.needsChecking=true;
+		}
+		return dose;
+	}
+	
+	static void addSpecificIngredientWithDose(String doseLabel, Unit unit, String ingredientLabel, BrandedDrug brandedDrug){
+		//create Dose object
+		Dose dose = Ontology.findOrCreateDose(doseLabel, unit.unitLabel);
+		//create  specific ingredient object
+		SpecificIngredient specificIngredient = Ontology.findOrCreateSpecificIngredient(ingredientLabel, ingredientLabel);
+		brandedDrug.addSpecIngredientWithDose(specificIngredient, dose);
+	}
+	
+	static void addIngredientWithDose(String doseLabel, Unit unit, String ingredientLabel, BrandedDrug brandedDrug){
+		//create Dose object
+		Dose dose = Ontology.findOrCreateDose(doseLabel, unit.unitLabel);
+		//create  ingredient object
+		Ingredient ingredient = Ontology.findOrCreateIngredient(ingredientLabel, ingredientLabel);
+		brandedDrug.addIngredientWithDose(ingredient, dose);
+	}
+	
+	
 
 	static void writeIngredientsToCSV(Map<String,Ingredient> ingredientMap, String csvFileName){
 		try
@@ -77,8 +135,7 @@ public class Utils {
 				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(specIngredient.ingredientBelongsTo.codeSubstance);
-				
-				
+			
 				bw.write(oneLine.toString());
 				bw.newLine();
 			}
@@ -96,19 +153,22 @@ public class Utils {
 		try
 		{
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugs.csv"), "UTF-8"));
+			BufferedWriter bwDoseNeedsChecking = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugsDoseNeedsChecking.csv"), "UTF-8"));
+			BufferedWriter bwBrandNameNeedsChecking = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugsBrandNamesNeedChecking.csv"), "UTF-8"));
 			
 			//variables for counters
-			int nbDrugsNoIngredients = 0;
-			int nbDrugsWithADoseMissing=0;
-			Set<Integer> nbIngredients = new HashSet<Integer>();
-			Set<Integer> nbSpecificIngredients = new HashSet<Integer>();
+//			int nbDrugsNoIngredients = 0;
+//			int nbDrugsWithADoseMissing=0;
+//			Set<Integer> nbIngredients = new HashSet<Integer>();
+//			Set<Integer> nbSpecificIngredients = new HashSet<Integer>();
 
 
 			for (BrandedDrug drug : clinicalDrugMap.values()) {
-				boolean ingredDoseMissing = false; // for counters. by default, assume dose is not missing
-				boolean specificIngredDoseMissing = false;
+//				boolean ingredDoseMissing = false; // for counters. by default, assume dose is not missing
+//				boolean specificIngredDoseMissing = false;
 				
 				StringBuffer oneLine = new StringBuffer();
+				
 				oneLine.append(drug.brandedDrugId);
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.brandName.toString().length() == 0? "" : drug.brandName.toString());
@@ -118,13 +178,13 @@ public class Utils {
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.brandedDosedComponent.ingredientsAndDoses.size()); //number of dosed ingredients
 				
-				//counters for missing ingredients
-				if (drug.brandedDosedComponent.ingredientsAndDoses.size()==0){
-					nbDrugsNoIngredients++;
-				}
-				//counter hashsets for number of ingredients 
-				nbIngredients.add(drug.brandedDosedComponent.ingredientsAndDoses.size());
-				nbSpecificIngredients.add(drug.brandedDosedSpecificComponent.specificIngredsAndDoses.size());
+//				//counters for missing ingredients
+//				if (drug.brandedDosedComponent.ingredientsAndDoses.size()==0){
+//					nbDrugsNoIngredients++;
+//				}
+//				//counter hashsets for number of ingredients 
+//				nbIngredients.add(drug.brandedDosedComponent.ingredientsAndDoses.size());
+//				nbSpecificIngredients.add(drug.brandedDosedSpecificComponent.specificIngredsAndDoses.size());
 				
 				//go through ingredients and doses
 				for (Map.Entry<Ingredient, Dose> dosedComponentEntry : drug.brandedDosedComponent.ingredientsAndDoses.entrySet()){
@@ -132,11 +192,13 @@ public class Utils {
 					oneLine.append(CSV_SEPARATOR);
 					oneLine.append(dosedComponentEntry.getKey().ingredientName.toString().length()==0? "" : dosedComponentEntry.getKey().ingredientName.toString()); //ingredient
 					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getValue().toString().length()==0? "" : dosedComponentEntry.getValue().toString()); //dose
-					//counter for missing dose Part 1 
-					if(dosedComponentEntry.getValue().toString().length()==0){
-						ingredDoseMissing=true;
-					}				
+					oneLine.append(dosedComponentEntry.getValue().doseNumber.length()==0? "" : dosedComponentEntry.getValue().doseNumber.toString()); //dose
+					oneLine.append(CSV_DOSE_SEPARATOR);
+					oneLine.append(dosedComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedComponentEntry.getValue().unit.unitLabel); //unit
+//					//counter for missing dose Part 1 
+//					if(dosedComponentEntry.getValue().toString().length()==0){
+//						ingredDoseMissing=true;
+//					}				
 				}
 
 				oneLine.append(CSV_SEPARATOR);
@@ -147,11 +209,13 @@ public class Utils {
 					oneLine.append(CSV_SEPARATOR);
 					oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient
 					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getValue().toString().length()==0? "" : dosedSpecificComponentEntry.getValue().toString()); //dose
-					//counter for specific ingredient dose missing Part 2 
-					if(dosedSpecificComponentEntry.getValue().toString().length()==0){
-						specificIngredDoseMissing=true;
-					}
+					oneLine.append(dosedSpecificComponentEntry.getValue().doseNumber.length()==0? "" : dosedSpecificComponentEntry.getValue().doseNumber.toString()); //dose
+					oneLine.append(CSV_DOSE_SEPARATOR);
+					oneLine.append(dosedSpecificComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedSpecificComponentEntry.getValue().unit.unitLabel.toString()); //unit
+//					//counter for specific ingredient dose missing Part 2 
+//					if(dosedSpecificComponentEntry.getValue().toString().length()==0){
+//						specificIngredDoseMissing=true;
+//					}
 				}
 
 				oneLine.append(CSV_SEPARATOR);
@@ -159,20 +223,36 @@ public class Utils {
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.label.length() == 0? "" : drug.label);
 
-				bw.write(oneLine.toString());
-				bw.newLine();
-				
-				if (specificIngredDoseMissing==true||ingredDoseMissing==true){ // Part 3 final counter for if dose is missing from either ingredient or specific ingredient side
-					nbDrugsWithADoseMissing++;
+				//print to different csv's depending on checking status
+				if(drug.doseNeedsChecking==true){
+					bwDoseNeedsChecking.write(oneLine.toString());
+					bwDoseNeedsChecking.newLine();
+				} else if (drug.brandNameNeedsChecking==true){
+					bwBrandNameNeedsChecking.write(oneLine.toString());
+					bwBrandNameNeedsChecking.newLine();
+				} else {
+					bw.write(oneLine.toString());
+					bw.newLine();
 				}
+				
+				
+				
+				
+//				if (specificIngredDoseMissing==true||ingredDoseMissing==true){ // Part 3 final counter for if dose is missing from either ingredient or specific ingredient side
+//					nbDrugsWithADoseMissing++;
+//				}
 			}
-			System.out.println("Number of drugs with no ingredients: "+nbDrugsNoIngredients 
-					+ "\nNumber of Drugs with a dose missing: " + nbDrugsWithADoseMissing
-					+ "\nNumber of Ingredients: " + nbIngredients
-					+ "\nNumber of Specific Ingredients: " + nbSpecificIngredients);
+//			System.out.println("Number of drugs with no ingredients: "+nbDrugsNoIngredients 
+//					+ "\nNumber of Drugs with a dose missing: " + nbDrugsWithADoseMissing
+//					+ "\nNumber of Ingredients: " + nbIngredients
+//					+ "\nNumber of Specific Ingredients: " + nbSpecificIngredients);
 
 			bw.flush();
 			bw.close();
+			bwDoseNeedsChecking.flush();
+			bwDoseNeedsChecking.close();
+			bwBrandNameNeedsChecking.flush();
+			bwBrandNameNeedsChecking.close();
 		}
 		catch (UnsupportedEncodingException e) {e.printStackTrace();}
 		catch (FileNotFoundException e){e.printStackTrace();}

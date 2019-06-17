@@ -12,6 +12,8 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient, IA
 	BrandedFormedComponent brandedFormedComponent = new BrandedFormedComponent();
 	BrandedDosedSpecificComponent brandedDosedSpecificComponent = new BrandedDosedSpecificComponent();
 	BrandedFormedSpecificComponent brandedFormedSpecificComponent = new BrandedFormedSpecificComponent();
+	Boolean doseNeedsChecking = false;
+	Boolean brandNameNeedsChecking = false;
 	
 	// link with NonbrandedDrug
 	NonbrandedDrug nonbrandedDrugBelongsTo = new NonbrandedDrug();
@@ -50,6 +52,7 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient, IA
 		nonbrandedDrugBelongsTo.formedSpecificComponent.containedSpecificIngredients.add(specIngredient);
 		brandedFormedSpecificComponent.containedSpecificIngredients.add(specIngredient);
 	}
+
 
 	@Override
 	public HashMap<SpecificIngredient, Dose> getSpecificIngredientDoseMap() {

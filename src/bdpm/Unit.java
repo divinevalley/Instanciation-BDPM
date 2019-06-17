@@ -1,11 +1,11 @@
 package bdpm;
 
 public class Unit {
-	String unit;
+	String unitLabel;
 
 	//constructor
-	Unit (String unit) {
-		this.unit=unit;
+	Unit (String unitLabel) {
+		this.unitLabel=unitLabel;
 	}
 
 }
