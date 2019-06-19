@@ -33,9 +33,9 @@ public class DosedComponent implements IHasMapKey, IHasDosedIngredients  {
 	}
 	
 	public void loopThroughDosedIngredients(StringBuffer oneLine, String CSV_SEPARATOR, String CSV_DOSE_SEPARATOR){
+		oneLine.append(CSV_SEPARATOR);
+		oneLine.append(ingredientsAndDoses.size()); //number of dosed ingredients
 		for (Map.Entry<Ingredient, Dose> dosedComponentEntry : ingredientsAndDoses.entrySet()){
-			oneLine.append(CSV_SEPARATOR);
-			oneLine.append(ingredientsAndDoses.size()); //number of dosed ingredients
 			oneLine.append(CSV_SEPARATOR);
 			oneLine.append(dosedComponentEntry.getKey().ingredientName.toString().length()==0? "" : dosedComponentEntry.getKey().ingredientName.toString()); //ingredient
 			oneLine.append(CSV_DOSE_SEPARATOR);

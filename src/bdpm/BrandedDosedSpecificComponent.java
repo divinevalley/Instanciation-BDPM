@@ -17,20 +17,7 @@ public class BrandedDosedSpecificComponent implements IHasDosedSpecificIngredien
 		this.specificIngredsAndDoses = specificIngredsAndDoses;
 	}
 	
-	public void loopThroughDosedComponents(StringBuffer oneLine, String CSV_SEPARATOR, String CSV_DOSE_SEPARATOR){
-		for (Map.Entry<SpecificIngredient, Dose> dosedSpecificComponentEntry : specificIngredsAndDoses.entrySet()){
-			oneLine.append(CSV_SEPARATOR);
-			oneLine.append(specificIngredsAndDoses.size()); //number of dosed specific ingredients
-			oneLine.append(CSV_SEPARATOR);
-			oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient
-			oneLine.append(CSV_DOSE_SEPARATOR);
-			oneLine.append(dosedSpecificComponentEntry.getValue().doseNumber.length()==0? "" : dosedSpecificComponentEntry.getValue().doseNumber); //dose
-			oneLine.append(CSV_DOSE_SEPARATOR);
-			oneLine.append(dosedSpecificComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedSpecificComponentEntry.getValue().unit.unitLabel); //unit
-		}
-	}
-	
-	
+
 
 	
 	public void loopThroughDosedSpecificIngredients(StringBuffer oneLine, String CSV_SEPARATOR, String CSV_DOSE_SEPARATOR) {

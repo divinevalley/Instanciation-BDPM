@@ -133,11 +133,6 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 		brandedDosedComponent.loopThroughDosedIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
 	}
 
-	
-	public void writeMatchingFormedSpecificComponents(StringBuffer oneLine, String CSV_SEPARATOR){
-		brandedFormedComponent.writeMatchingFormedSpecificComponents(oneLine, CSV_SEPARATOR);
-	}
-	
 	@Override
 	public void loopThroughIngredients(StringBuffer oneLine, String CSV_SEPARATOR) {
 		brandedFormedComponent.loopThroughIngredients(oneLine, CSV_SEPARATOR);
@@ -170,6 +165,10 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 		brandedFormedSpecificComponent.writeMatchingFormedComponent(oneLine, CSV_SEPARATOR);
 	}
 
+	public void writeMatchingFormedSpecificComponents(StringBuffer oneLine, String CSV_SEPARATOR){
+		brandedFormedComponent.writeMatchingFormedSpecificComponents(oneLine, CSV_SEPARATOR);
+	}
+	
 
 	
 

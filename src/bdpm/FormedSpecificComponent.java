@@ -46,12 +46,21 @@ public class FormedSpecificComponent implements IHasUndosedSpecificIngredients, 
 	
 	@Override
 	public void writeMatchingFormedComponent(StringBuffer oneLine, String CSV_SEPARATOR) {
-
 		if (formedComponentBelongsTo.containedIngredients.size()>0){ //avoid generating mapkey for a meaningless object
 			oneLine.append(CSV_SEPARATOR);
 			oneLine.append(formedComponentBelongsTo.generateMapKey()); 
 		}
-		
+	}
+	
+	@Override
+	public void loopThroughSpecificIngredients(StringBuffer oneLine, String CSV_SEPARATOR) {
+		oneLine.append(CSV_SEPARATOR);
+		oneLine.append(containedSpecificIngredients.size()); //number of ingredients in this component 
+
+		for (SpecificIngredient specificIngredient : containedSpecificIngredients){ //print all specific ingredients in the hashset
+			oneLine.append(CSV_SEPARATOR);
+			oneLine.append(specificIngredient.specificIngredientName.toString().length()==0? "" : specificIngredient.specificIngredientName.toString());
+		}
 	}
 	
 	
@@ -69,18 +78,7 @@ public class FormedSpecificComponent implements IHasUndosedSpecificIngredients, 
 	}
 
 
-	@Override
-	public void loopThroughSpecificIngredients(StringBuffer oneLine, String CSV_SEPARATOR) {
-		oneLine.append(CSV_SEPARATOR);
-		oneLine.append(containedSpecificIngredients.size()); //number of ingredients in this component 
-
-		for (SpecificIngredient specificIngredient : containedSpecificIngredients){ //print all specific ingredients in the hashset
-			oneLine.append(CSV_SEPARATOR);
-			oneLine.append(specificIngredient.specificIngredientName.toString().length()==0? "" : specificIngredient.specificIngredientName.toString());
-		}
-		
-		
-	}
+	
 
 
 
