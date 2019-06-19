@@ -3,7 +3,7 @@ package bdpm;
 import java.util.HashSet;
 import java.util.Set;
 
-public class BrandedFormedComponent implements IBrandName, IHasForm, IAddIngredient{
+public class BrandedFormedComponent implements IBrandName, IHasForm, IHasUndosedIngredients{
 	Form form = new Form();
 	Set<Ingredient> containedIngredients = new HashSet<Ingredient>();
 	Set<BrandedFormedSpecificComponent> matchingBrandedFormedSpecificComponents = new HashSet<BrandedFormedSpecificComponent>();
@@ -56,7 +56,28 @@ public class BrandedFormedComponent implements IBrandName, IHasForm, IAddIngredi
 		this.form=form;
 	}
 
+	public void loopThroughIngredients(StringBuffer oneLine, String CSV_SEPARATOR){
+		oneLine.append(CSV_SEPARATOR);
+		oneLine.append(containedIngredients.size()); //number of ingredients in this component 
+		//go through ingredients 
+		for (Ingredient ingredient : containedIngredients){ //print all ingredients in the hashset
+			oneLine.append(CSV_SEPARATOR);
+			oneLine.append(ingredient.ingredientName.toString().length()==0? "" : ingredient.ingredientName.toString());
+		}
+	}
 
+	
+	public void writeMatchingFormedSpecificComponents(StringBuffer oneLine, String CSV_SEPARATOR){
+		oneLine.append(CSV_SEPARATOR);
+		oneLine.append(matchingBrandedFormedSpecificComponents.size()); //nb matching FormedSpecificComponents
+		//go through matching FormedSpecificComponents
+		for (BrandedFormedSpecificComponent matchingBrandedFormedSpecificComponent : matchingBrandedFormedSpecificComponents){
+			if (matchingBrandedFormedSpecificComponent.containedSpecificIngredients.size()>0){ // avoid putting "empty" objects
+				oneLine.append(CSV_SEPARATOR);
+				oneLine.append(matchingBrandedFormedSpecificComponent.generateMapKey()); //print matching FormedSpecificComponent mapkey
+			}
+		}
+	}
 
 
 	@Override

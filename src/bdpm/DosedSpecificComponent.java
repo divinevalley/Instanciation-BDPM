@@ -3,7 +3,7 @@ package bdpm;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DosedSpecificComponent implements IAddDosedSpecificIngredient, IHasMapKey {
+public class DosedSpecificComponent implements IHasDosedSpecificIngredients, IHasMapKey {
 	
 	Map<SpecificIngredient, Dose> specificIngredsAndDoses = new HashMap<SpecificIngredient, Dose>();
 	DosedComponent dosedComponentBelongsTo = new DosedComponent();
@@ -21,6 +21,44 @@ public class DosedSpecificComponent implements IAddDosedSpecificIngredient, IHas
 		}
 
 	}
+	
+	public void loopThroughDosedComponents(StringBuffer oneLine, String CSV_SEPARATOR, String CSV_DOSE_SEPARATOR){
+		for (Map.Entry<SpecificIngredient, Dose> dosedSpecificComponentEntry : specificIngredsAndDoses.entrySet()){
+			oneLine.append(CSV_SEPARATOR);
+			oneLine.append(specificIngredsAndDoses.size()); //number of dosed specific ingredients
+			oneLine.append(CSV_SEPARATOR);
+			oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient
+			oneLine.append(CSV_DOSE_SEPARATOR);
+			oneLine.append(dosedSpecificComponentEntry.getValue().doseNumber.length()==0? "" : dosedSpecificComponentEntry.getValue().doseNumber); //dose
+			oneLine.append(CSV_DOSE_SEPARATOR);
+			oneLine.append(dosedSpecificComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedSpecificComponentEntry.getValue().unit.unitLabel); //unit
+		}
+	}
+	
+	@Override
+	public void loopThroughDosedSpecificIngredients(StringBuffer oneLine, String CSV_SEPARATOR, String CSV_DOSE_SEPARATOR) {
+		oneLine.append(CSV_SEPARATOR);
+		oneLine.append(specificIngredsAndDoses.size()); //number of dosed specific ingredients
+		for (Map.Entry<SpecificIngredient, Dose> dosedSpecificComponentEntry : specificIngredsAndDoses.entrySet()){
+			oneLine.append(CSV_SEPARATOR);
+			oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient name
+			oneLine.append(CSV_DOSE_SEPARATOR);
+			oneLine.append(dosedSpecificComponentEntry.getValue().toString().length()==0? "" : dosedSpecificComponentEntry.getValue().toString()); //dose
+		}
+		
+	}
+	
+	@Override
+	public void writeMatchingDosedComponent(StringBuffer oneLine, String CSV_SEPARATOR) {
+		if (dosedComponentBelongsTo.ingredientsAndDoses.size() > 0){  //avoid generating a hashid for an meaningless object (empty map)
+			oneLine.append(CSV_SEPARATOR);
+			oneLine.append(dosedComponentBelongsTo.generateMapKey());
+		}
+		
+		
+	}
+
+
 	
 	@Override
 	public HashMap<SpecificIngredient, Dose> getSpecificIngredientDoseMap() {
@@ -41,6 +79,8 @@ public class DosedSpecificComponent implements IAddDosedSpecificIngredient, IHas
 		}
 		return "\n"+ spIngredWithDose + "\n\n";
 	}
+
+	
 
 	
 

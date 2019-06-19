@@ -53,7 +53,7 @@ public class Utils {
 		Unit unit = doseAndUnitSegments.length<2 ? new Unit("") : new Unit(doseAndUnitSegments[1].trim());
 		Dose dose = Ontology.findOrCreateDose(doseAndUnitSegments[0], unit.unitLabel);
 		//if split was impossible OR if any part is too long OR dose part has letters
-		if (doseAndUnitSegments.length==1 || doseAndUnitSegments[doseAndUnitSegments.length-1].trim().length()>12 || !doseAndUnitSegments[0].matches("[^a-zA-Z]+")){ 
+		if (doseAndUnitSegments.length==1 || doseAndUnitSegments[doseAndUnitSegments.length-1].trim().length()>12 || doseAndUnitSegments[0].matches("[a-zA-Z,]+")){ 
 			dose.needsChecking=true;
 		}
 		return dose;
@@ -153,19 +153,10 @@ public class Utils {
 		try
 		{
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugs.csv"), "UTF-8"));
-			BufferedWriter bwDoseNeedsChecking = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugsDoseNeedsChecking.csv"), "UTF-8"));
-			BufferedWriter bwBrandNameNeedsChecking = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugsBrandNamesNeedChecking.csv"), "UTF-8"));
+			BufferedWriter bwCheckDose = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugsCHECKDOSE.csv"), "UTF-8"));
+			BufferedWriter bwCheckBrandName = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugsCHECKBRANDNAMES.csv"), "UTF-8"));
 			
-			//variables for counters
-//			int nbDrugsNoIngredients = 0;
-//			int nbDrugsWithADoseMissing=0;
-//			Set<Integer> nbIngredients = new HashSet<Integer>();
-//			Set<Integer> nbSpecificIngredients = new HashSet<Integer>();
-
-
 			for (BrandedDrug drug : clinicalDrugMap.values()) {
-//				boolean ingredDoseMissing = false; // for counters. by default, assume dose is not missing
-//				boolean specificIngredDoseMissing = false;
 				
 				StringBuffer oneLine = new StringBuffer();
 				
@@ -175,48 +166,11 @@ public class Utils {
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.getForm().toString().length() == 0? "" : drug.getForm().toString());
 
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(drug.brandedDosedComponent.ingredientsAndDoses.size()); //number of dosed ingredients
-				
-//				//counters for missing ingredients
-//				if (drug.brandedDosedComponent.ingredientsAndDoses.size()==0){
-//					nbDrugsNoIngredients++;
-//				}
-//				//counter hashsets for number of ingredients 
-//				nbIngredients.add(drug.brandedDosedComponent.ingredientsAndDoses.size());
-//				nbSpecificIngredients.add(drug.brandedDosedSpecificComponent.specificIngredsAndDoses.size());
-				
-				//go through ingredients and doses
-				for (Map.Entry<Ingredient, Dose> dosedComponentEntry : drug.brandedDosedComponent.ingredientsAndDoses.entrySet()){
-					
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getKey().ingredientName.toString().length()==0? "" : dosedComponentEntry.getKey().ingredientName.toString()); //ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getValue().doseNumber.length()==0? "" : dosedComponentEntry.getValue().doseNumber.toString()); //dose
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedComponentEntry.getValue().unit.unitLabel); //unit
-//					//counter for missing dose Part 1 
-//					if(dosedComponentEntry.getValue().toString().length()==0){
-//						ingredDoseMissing=true;
-//					}				
-				}
-
-				oneLine.append(CSV_SEPARATOR);
+				//go through ingredients and doses	
+				drug.brandedDosedComponent.loopThroughDosedIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
+		
 				//go through specific ingredients and doses
-				oneLine.append(drug.brandedDosedSpecificComponent.specificIngredsAndDoses.size()); //number of dosed specific ingredients
-
-				for (Map.Entry<SpecificIngredient, Dose> dosedSpecificComponentEntry : drug.brandedDosedSpecificComponent.specificIngredsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getValue().doseNumber.length()==0? "" : dosedSpecificComponentEntry.getValue().doseNumber.toString()); //dose
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedSpecificComponentEntry.getValue().unit.unitLabel.toString()); //unit
-//					//counter for specific ingredient dose missing Part 2 
-//					if(dosedSpecificComponentEntry.getValue().toString().length()==0){
-//						specificIngredDoseMissing=true;
-//					}
-				}
+				drug.brandedDosedSpecificComponent.loopThroughDosedComponents(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
 
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.nonbrandedDrugBelongsTo.generateMapKey());  //hash id for nonbrandeddrug
@@ -225,34 +179,23 @@ public class Utils {
 
 				//print to different csv's depending on checking status
 				if(drug.doseNeedsChecking==true){
-					bwDoseNeedsChecking.write(oneLine.toString());
-					bwDoseNeedsChecking.newLine();
+					bwCheckDose.write(oneLine.toString());
+					bwCheckDose.newLine();
 				} else if (drug.brandNameNeedsChecking==true){
-					bwBrandNameNeedsChecking.write(oneLine.toString());
-					bwBrandNameNeedsChecking.newLine();
+					bwCheckBrandName.write(oneLine.toString());
+					bwCheckBrandName.newLine();
 				} else {
 					bw.write(oneLine.toString());
 					bw.newLine();
 				}
-				
-				
-				
-				
-//				if (specificIngredDoseMissing==true||ingredDoseMissing==true){ // Part 3 final counter for if dose is missing from either ingredient or specific ingredient side
-//					nbDrugsWithADoseMissing++;
-//				}
 			}
-//			System.out.println("Number of drugs with no ingredients: "+nbDrugsNoIngredients 
-//					+ "\nNumber of Drugs with a dose missing: " + nbDrugsWithADoseMissing
-//					+ "\nNumber of Ingredients: " + nbIngredients
-//					+ "\nNumber of Specific Ingredients: " + nbSpecificIngredients);
 
 			bw.flush();
 			bw.close();
-			bwDoseNeedsChecking.flush();
-			bwDoseNeedsChecking.close();
-			bwBrandNameNeedsChecking.flush();
-			bwBrandNameNeedsChecking.close();
+			bwCheckDose.flush();
+			bwCheckDose.close();
+			bwCheckBrandName.flush();
+			bwCheckBrandName.close();
 		}
 		catch (UnsupportedEncodingException e) {e.printStackTrace();}
 		catch (FileNotFoundException e){e.printStackTrace();}
@@ -272,28 +215,12 @@ public class Utils {
 				oneLine.append(drugEntry.getKey()); //hashid
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drugEntry.getValue().formedComponent.form.toString().length() == 0? "" : drugEntry.getValue().formedComponent.form.toString());
-
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(drugEntry.getValue().dosedComponent.ingredientsAndDoses.size()); //number of dosed ingredients
 				
 				//go through ingredients and doses
-				for (Map.Entry<Ingredient, Dose> dosedComponentEntry : drugEntry.getValue().dosedComponent.ingredientsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getKey().ingredientName.toString().length()==0? "" : dosedComponentEntry.getKey().ingredientName.toString()); //ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getValue().toString().length()==0? "" : dosedComponentEntry.getValue().toString()); //dose
-				}
-
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(drugEntry.getValue().dosedSpecificComponent.specificIngredsAndDoses.size()); //number of dosed specific ingredients
-
+				drugEntry.getValue().dosedComponent.loopThroughDosedIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
+	
 				//go through specific ingredients and doses
-				for (Map.Entry<SpecificIngredient, Dose> dosedSpecificComponentEntry : drugEntry.getValue().dosedSpecificComponent.specificIngredsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getValue().toString().length()==0? "" : dosedSpecificComponentEntry.getValue().toString()); //dose
-				}
+				drugEntry.getValue().dosedSpecificComponent.loopThroughDosedComponents(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR); 
 				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drugEntry.getValue().matchingBrandedDrugs.size()); //number of matching BrandedDrugs
@@ -306,6 +233,7 @@ public class Utils {
 				
 				bw.write(oneLine.toString());
 				bw.newLine();
+				
 			}
 
 			bw.flush();
@@ -325,25 +253,12 @@ public class Utils {
 				StringBuffer oneLine = new StringBuffer();
 				
 				oneLine.append(entry.getKey()); //hashid
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(entry.getValue().ingredientsAndDoses.size()); //number of dosed ingredients 
 
 				//go through ingredients and doses
-				for (Map.Entry<Ingredient, Dose> ingredDoseEntry : entry.getValue().ingredientsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(ingredDoseEntry.getKey().ingredientName.toString().length()==0? "" : ingredDoseEntry.getKey().ingredientName.toString()); //ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(ingredDoseEntry.getValue().toString().length()==0? "" : ingredDoseEntry.getValue().toString()); //dose
-				}
-				
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(entry.getValue().matchingDosedSpecificComponents.size());  //nb matching DosedSpecificComponents
-				
+				entry.getValue().loopThroughDosedIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);		
+
 				//go through matching DosedSpecificComponents
-				for (DosedSpecificComponent matchingDosedSpecificComponent : entry.getValue().matchingDosedSpecificComponents){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(matchingDosedSpecificComponent.generateMapKey());  //print matching DosedSpecificComponent's mapkey
-				}
+				entry.getValue().writeMatchingSpecificComponents(oneLine, CSV_SEPARATOR);
 				
 				bw.write(oneLine.toString());
 				bw.newLine();
@@ -366,26 +281,10 @@ public class Utils {
 				oneLine.append(formedComponentEntry.getKey()); 
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(formedComponentEntry.getValue().form); 
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedComponentEntry.getValue().containedIngredients.size()); //number of ingredients in this component 
 
-				//go through ingredients 
-				for (Ingredient ingredient : formedComponentEntry.getValue().containedIngredients){ //print all ingredients in the hashset
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(ingredient.ingredientName.toString().length()==0? "" : ingredient.ingredientName.toString());
-				}
+				formedComponentEntry.getValue().loopThroughIngredients(oneLine, CSV_SEPARATOR);
 				
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedComponentEntry.getValue().matchingFormedSpecificComponents.size()); //nb matching FormedSpecificComponents
-				
-				//go through matching FormedSpecificComponents
-				for (FormedSpecificComponent matchingFormedSpecificComponent : formedComponentEntry.getValue().matchingFormedSpecificComponents){
-					if (matchingFormedSpecificComponent.containedSpecificIngredients.size()>0){ // avoid putting "empty" objects
-						oneLine.append(CSV_SEPARATOR);
-						oneLine.append(matchingFormedSpecificComponent.generateMapKey()); //print matching FormedSpecificComponent mapkey
-					}
-					
-				}
+				formedComponentEntry.getValue().writeMatchingFormedSpecificComponents(oneLine, CSV_SEPARATOR);
 				
 				bw.write(oneLine.toString());
 				bw.newLine();
@@ -399,7 +298,7 @@ public class Utils {
 	}
 	
 	
-	static void writeDosedSpecificComponentsToCSV(Map<String, DosedSpecificComponent> dosedSpecificComponentMap){ //hashid; number of dosed spec ingredients; specificingredient|dose
+	static void writeDosedSpecificComponentsToCSV(Map<String, DosedSpecificComponent> dosedSpecificComponentMap){ //hashid; number of dosed spec ingredients; specificingredient|dose; matching DosedComponent
 		try {
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("dosedspecificcomponents.csv"), "UTF-8"));
 
@@ -407,23 +306,12 @@ public class Utils {
 				StringBuffer oneLine = new StringBuffer();
 				
 				oneLine.append(dosedSpecificComponentEntry.getKey()); //hashid
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(dosedSpecificComponentEntry.getValue().specificIngredsAndDoses.size()); //number of dosed specific ingredients
-				
+							
 				//go through specific ingredients and doses 
-				for (Map.Entry<SpecificIngredient, Dose> ingredDoseMapEntry : dosedSpecificComponentEntry.getValue().specificIngredsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(ingredDoseMapEntry.getKey().specificIngredientName.toString().length()==0? "" : ingredDoseMapEntry.getKey().specificIngredientName.toString()); //ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(ingredDoseMapEntry.getValue().toString().length()==0? "" : ingredDoseMapEntry.getValue().toString()); //dose
-				}
-						
-				if (dosedSpecificComponentEntry.getValue().dosedComponentBelongsTo.ingredientsAndDoses.size() > 0){  //avoid generating a hashid for an meaningless object (empty map)
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getValue().dosedComponentBelongsTo.generateMapKey());
-					
-				}
+				dosedSpecificComponentEntry.getValue().loopThroughDosedSpecificIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
 				
+				dosedSpecificComponentEntry.getValue().writeMatchingDosedComponent(oneLine, CSV_SEPARATOR);
+
 				bw.write(oneLine.toString());
 				bw.newLine();
 			}
@@ -445,17 +333,11 @@ public class Utils {
 				oneLine.append(formedSpecificComponentEntry.getKey()); //hash id
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(formedSpecificComponentEntry.getValue().form); 
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedSpecificComponentEntry.getValue().containedSpecificIngredients.size()); //number of specificingredients in this component 
-
-				for (SpecificIngredient specificIngredient : formedSpecificComponentEntry.getValue().containedSpecificIngredients){ //print all ingredients in the hashset
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(specificIngredient.specificIngredientName.toString().length()==0? "" : specificIngredient.specificIngredientName.toString());
-				} 
-				if (formedSpecificComponentEntry.getValue().formedComponentBelongsTo.containedIngredients.size()>0){ //avoid generating mapkey for a meaningless object
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(formedSpecificComponentEntry.getValue().formedComponentBelongsTo.generateMapKey()); 
-				}
+				
+				formedSpecificComponentEntry.getValue().loopThroughSpecificIngredients(oneLine, CSV_SEPARATOR);
+				
+				formedSpecificComponentEntry.getValue().writeMatchingFormedComponent(oneLine, CSV_SEPARATOR);
+				
 				bw.write(oneLine.toString());
 				bw.newLine();
 			}
@@ -476,25 +358,14 @@ public class Utils {
 				StringBuffer oneLine = new StringBuffer();
 				
 				oneLine.append(brandedDosedComponentEntry.getKey()); //hashid
-				oneLine.append(CSV_SEPARATOR);
 				
-				oneLine.append(brandedDosedComponentEntry.getValue().ingredientsAndDoses.size()); //number of dosed specific ingredients
-
-				for (Map.Entry<Ingredient, Dose> dosedComponentEntry : brandedDosedComponentEntry.getValue().ingredientsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getKey().ingredientName.toString().length()==0? "" : dosedComponentEntry.getKey().ingredientName.toString()); //ingredient
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedComponentEntry.getValue().toString().length()==0? "" : dosedComponentEntry.getValue().toString()); //dose
-				}
+				brandedDosedComponentEntry.getValue().loopThroughDosedIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
+				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(brandedDosedComponentEntry.getValue().brandName.brandNameLabel);
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(brandedDosedComponentEntry.getValue().matchingBrandedDosedSpecificComponents.size());  //number of Branded DosedSpecificComponents
 				
-				for (BrandedDosedSpecificComponent matchingComponent : brandedDosedComponentEntry.getValue().matchingBrandedDosedSpecificComponents){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(matchingComponent.generateMapKey());
-				}
+				brandedDosedComponentEntry.getValue().writeMatchingSpecificComponents(oneLine, CSV_SEPARATOR);
+				
 				bw.write(oneLine.toString());
 				bw.newLine();
 			}
@@ -516,24 +387,11 @@ public class Utils {
 				oneLine.append(formedComponentEntry.getKey()); //hash id
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(formedComponentEntry.getValue().form); 
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedComponentEntry.getValue().containedIngredients.size()); //number of ingredients in this component 
-
-				for (Ingredient ingredient : formedComponentEntry.getValue().containedIngredients){ //go through all ingredients in the hashset
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(ingredient.ingredientName.toString().length()==0? "" : ingredient.ingredientName.toString());
-				}
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedComponentEntry.getValue().brandName.brandNameLabel);
 				
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedComponentEntry.getValue().matchingBrandedFormedSpecificComponents.size()); // # of matching
+				formedComponentEntry.getValue().loopThroughIngredients(oneLine, CSV_SEPARATOR);
 				
-				for (BrandedFormedSpecificComponent matchingBFSComponent : formedComponentEntry.getValue().matchingBrandedFormedSpecificComponents){ // matching branded formed specific components 
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(matchingBFSComponent.generateMapKey());
-				}
-		
+				formedComponentEntry.getValue().writeMatchingFormedSpecificComponents(oneLine, CSV_SEPARATOR);
+				
 				bw.write(oneLine.toString());
 				bw.newLine();
 				
@@ -556,20 +414,15 @@ public class Utils {
 				oneLine.append(formedSpecComponentEntry.getKey()); // hash id
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(formedSpecComponentEntry.getValue().form); 
-				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(formedSpecComponentEntry.getValue().containedSpecificIngredients.size()); //number of ingredients in this component 
-
-				for (SpecificIngredient specificIngredient : formedSpecComponentEntry.getValue().containedSpecificIngredients){ //print all specific ingredients in the hashset
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(specificIngredient.specificIngredientName.toString().length()==0? "" : specificIngredient.specificIngredientName.toString());
-				}
+				
+						
+				formedSpecComponentEntry.getValue().loopThroughSpecificIngredients(oneLine, CSV_SEPARATOR);
+				
+				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(formedSpecComponentEntry.getValue().brandName.brandNameLabel);
 				
-				if (formedSpecComponentEntry.getValue().brandedFormedComponentBelongsTo.containedIngredients.size()>0){ //avoid "empty" objects 
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(formedSpecComponentEntry.getValue().brandedFormedComponentBelongsTo.generateMapKey()); //matching branded formed component
-				}
+				formedSpecComponentEntry.getValue().writeMatchingFormedComponent(oneLine, CSV_SEPARATOR);
 				
 				bw.write(oneLine.toString());
 				bw.newLine();
@@ -591,23 +444,15 @@ public class Utils {
 				StringBuffer oneLine = new StringBuffer();
 				
 				oneLine.append(brandedDosedSpecificComponentEntry.getKey()); //hash id
-				oneLine.append(CSV_SEPARATOR);
+		
+				brandedDosedSpecificComponentEntry.getValue().loopThroughDosedSpecificIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
 				
-				oneLine.append(brandedDosedSpecificComponentEntry.getValue().specificIngredsAndDoses.size()); //number of dosed specific ingredients
-
-				for (Map.Entry<SpecificIngredient, Dose> dosedSpecificComponentEntry : brandedDosedSpecificComponentEntry.getValue().specificIngredsAndDoses.entrySet()){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient name
-					oneLine.append(CSV_DOSE_SEPARATOR);
-					oneLine.append(dosedSpecificComponentEntry.getValue().toString().length()==0? "" : dosedSpecificComponentEntry.getValue().toString()); //dose
-				}
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(brandedDosedSpecificComponentEntry.getValue().brandName.brandNameLabel);
 				
-				if (brandedDosedSpecificComponentEntry.getValue().brandedDosedComponentBelongsTo.ingredientsAndDoses.size()>0){
-					oneLine.append(CSV_SEPARATOR);
-					oneLine.append(brandedDosedSpecificComponentEntry.getValue().brandedDosedComponentBelongsTo.generateMapKey()); //matching overall branded dosed component 
-				}
+				
+				brandedDosedSpecificComponentEntry.getValue().writeMatchingDosedComponent(oneLine, CSV_SEPARATOR);
+				
 				bw.write(oneLine.toString());
 				bw.newLine();
 			}
@@ -634,4 +479,6 @@ public class Utils {
 		return encryptedString;
 
 	}
+	
+	
 }

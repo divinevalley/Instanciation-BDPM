@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class NonbrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient, IAddIngredient, IAddDosedSpecificIngredient, IAddDosedIngredient { 
+public class NonbrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIngredients, IHasUndosedIngredients, IHasDosedSpecificIngredients, IHasDosedIngredients { 
 	FormedComponent formedComponent = new FormedComponent(); //for multiple inheritance, FormedComponent is like another superclass of NonBrandedDrug 
 	DosedComponent dosedComponent = new DosedComponent(); //this object will contain the map of DosedIngredients
 	DosedSpecificComponent dosedSpecificComponent = new DosedSpecificComponent();
@@ -93,6 +93,53 @@ public class NonbrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient,
 
 	
 
+	
+
+	@Override
+	public void loopThroughDosedIngredients(StringBuffer oneLine, String CSV_SEPARATOR, String CSV_DOSE_SEPARATOR) {
+		dosedComponent.loopThroughDosedIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
+	}
+	
+	@Override
+	public void loopThroughSpecificIngredients(StringBuffer oneLine, String CSV_SEPARATOR) {
+		formedSpecificComponent.loopThroughSpecificIngredients(oneLine, CSV_SEPARATOR);
+	}
+	
+	@Override
+	public void loopThroughDosedSpecificIngredients(StringBuffer oneLine, String CSV_SEPARATOR,
+			String CSV_DOSE_SEPARATOR) {
+		dosedSpecificComponent.loopThroughDosedSpecificIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
+	}
+
+	@Override
+	public void loopThroughIngredients(StringBuffer oneLine, String CSV_SEPARATOR) {
+		formedComponent.loopThroughIngredients(oneLine, CSV_SEPARATOR);
+	}
+
+	@Override
+	public void writeMatchingFormedSpecificComponents(StringBuffer oneLine, String CSV_SEPARATOR) {
+		formedComponent.writeMatchingFormedSpecificComponents(oneLine, CSV_SEPARATOR);
+		
+	}
+	
+	@Override
+	public void writeMatchingSpecificComponents(StringBuffer oneLine, String CSV_SEPARATOR) {
+		dosedComponent.writeMatchingSpecificComponents(oneLine, CSV_SEPARATOR);
+	}
+	
+	@Override
+	public void writeMatchingDosedComponent(StringBuffer oneLine, String CSV_SEPARATOR) {
+		dosedSpecificComponent.writeMatchingDosedComponent(oneLine, CSV_SEPARATOR);
+		
+	}
+
+	@Override
+	public void writeMatchingFormedComponent(StringBuffer oneLine, String CSV_SEPARATOR) {
+		formedSpecificComponent.writeMatchingFormedComponent(oneLine, CSV_SEPARATOR);
+	}
+
+		
+	
 	public String toString() {
 		String ingredientsString = "";
 		for (Map.Entry<Ingredient, Dose> entry : dosedComponent.ingredientsAndDoses.entrySet()) {
@@ -125,7 +172,13 @@ public class NonbrandedDrug implements IHasMapKey, IHasForm, IAddSpecIngredient,
 	}
 
 	
+	
 
+	
 
+	
 
 }
+
+	
+

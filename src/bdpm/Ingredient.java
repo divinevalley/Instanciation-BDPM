@@ -4,7 +4,7 @@ package bdpm;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Ingredient { //superclass of SpecificIngredient
+public class Ingredient { //should be a superclass of SpecificIngredient
 	String ingredientName;
 	String codeSubstance;
 	Set<String> otherNames = new HashSet<String>();
