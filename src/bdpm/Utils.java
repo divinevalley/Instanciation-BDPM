@@ -49,7 +49,7 @@ public class Utils {
 	}
 	
 	static Dose splitDoseAndUnitAndCreateDose(String doseLabel){
-		String[] doseAndUnitSegments = doseLabel.split("(?=\\s[mglicGLIUCµ])", 2); //split and keep the delimiter to the right 
+		String[] doseAndUnitSegments = doseLabel.split("(?=[\\s]+[mglicnGLIUCµ])", 2); //split and keep the delimiter to the right 
 		Unit unit = doseAndUnitSegments.length<2 ? new Unit("") : new Unit(doseAndUnitSegments[1].trim());
 		Dose dose = Ontology.findOrCreateDose(doseAndUnitSegments[0], unit.unitLabel);
 		//if split was impossible OR if any part is too long OR dose part has letters
@@ -149,7 +149,7 @@ public class Utils {
 	}
 
 
-	static void writeBrandedDrugsToCSV(Map<String,BrandedDrug> clinicalDrugMap){  //brandedDrugId;brandName;form;number of ingredients; each dosed ingredient|dose; number of specific ingredients ; each specific ingred|dose; matching nonbranded drug ; original label
+	static void writeBrandedDrugsToCSV(Map<String,BrandedDrug> clinicalDrugMap){  //brandedDrugId;brandName;form;number of ingredients; each dosed ingredient|dose; number of specific ingredients ; each specific ingred|dose; matching clinical drug ; original label
 		try
 		{
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("brandedDrugs.csv"), "UTF-8"));
@@ -173,13 +173,19 @@ public class Utils {
 				drug.brandedDosedSpecificComponent.loopThroughDosedSpecificIngredients(oneLine, CSV_SEPARATOR, CSV_DOSE_SEPARATOR);
 
 				oneLine.append(CSV_SEPARATOR);
-				oneLine.append(drug.nonbrandedDrugBelongsTo.generateMapKey());  //hash id for nonbrandeddrug
+				oneLine.append(drug.clinicalDrugBelongsTo.generateMapKey());  //hash id for clinicaldrug
 				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.brandedFormedComponent.generateMapKey());  //hash id for matching BrandedFormedComponent
 				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.brandedDosedComponent.generateMapKey());  //hash id for matching BrandedDosedComponent
+				
+				oneLine.append(CSV_SEPARATOR);
+				oneLine.append(drug.brandedFormedSpecificComponent.generateMapKey());  //hash id for matching BrandedFormedSpecificComponent
+				
+				oneLine.append(CSV_SEPARATOR);
+				oneLine.append(drug.brandedDosedSpecificComponent.generateMapKey());  //hash id for matching BrandedDosedSpecificComponent
 				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drug.label.length() == 0? "" : drug.label);
@@ -210,12 +216,12 @@ public class Utils {
 	}
 
 
-	static void writeNonbrandedDrugsToCSV(Map<String, NonbrandedDrug> nonbrandedDrugMap){ //hash id; form;number of ingredients; eachdosed ingredient|dose; number of specific ingredients ; each specific ingred|dose ; number of matching BrandedDrugs ; each matching BrandedDrug's id
+	static void writeClinicalDrugsToCSV(Map<String, ClinicalDrug> clinicalDrugMap){ //hash id; form;number of ingredients; eachdosed ingredient|dose; number of specific ingredients ; each specific ingred|dose ; number of matching BrandedDrugs ; each matching BrandedDrug's id
 		try
 		{
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("nonbrandeddrugs.csv"), "UTF-8"));
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream("clinicaldrugs.csv"), "UTF-8"));
 
-			for (Map.Entry<String, NonbrandedDrug> drugEntry : nonbrandedDrugMap.entrySet()) {
+			for (Map.Entry<String, ClinicalDrug> drugEntry : clinicalDrugMap.entrySet()) {
 
 				StringBuffer oneLine = new StringBuffer();
 				
@@ -234,6 +240,12 @@ public class Utils {
 				
 				oneLine.append(CSV_SEPARATOR);
 				oneLine.append(drugEntry.getValue().dosedComponent.generateMapKey()); //hashid of matching dosedcomponent
+				
+				oneLine.append(CSV_SEPARATOR);
+				oneLine.append(drugEntry.getValue().formedSpecificComponent.generateMapKey()); //hashid of matching formedspecificcomponent
+				
+				oneLine.append(CSV_SEPARATOR);
+				oneLine.append(drugEntry.getValue().dosedSpecificComponent.generateMapKey()); //hashid of matching dosedspecificucomponent
 				
 				
 				oneLine.append(CSV_SEPARATOR);

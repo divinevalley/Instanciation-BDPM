@@ -8,7 +8,7 @@ public class FormedComponent implements IHasForm, IHasUndosedIngredients{
 	Set<Ingredient> containedIngredients = new HashSet<Ingredient>();
 	Set<FormedSpecificComponent> matchingFormedSpecificComponents = new HashSet<FormedSpecificComponent>();
 	
-	Set<NonbrandedDrug> matchingNonbrandedDrugs = new HashSet<NonbrandedDrug>();
+	Set<ClinicalDrug> matchingNonbrandedDrugs = new HashSet<ClinicalDrug>();
 	
 	//constructors
 	public FormedComponent(Form form, Set<Ingredient> containedIngredients) {

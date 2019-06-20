@@ -16,10 +16,10 @@ public class Ontology {
 	static Map<String, BrandName> brandNameMap = new HashMap<String,BrandName>(); //branad name as key
 
 	//Drugs - branded and non branded
-	static Map<String, NonbrandedDrug> nonbrandedDrugMap = new HashMap<String, NonbrandedDrug>(); //form+DosedIngredMap+DosedSpecIngredMap toString & hasehd as key
+	static Map<String, ClinicalDrug> clinicalDrugMap = new HashMap<String, ClinicalDrug>(); //form+DosedIngredMap+DosedSpecIngredMap toString & hasehd as key
 	static Map<String, BrandedDrug> brandedDrugMap = new HashMap<String, BrandedDrug>(); //brandedDrugId as key
 
-	//Nonbranded Drug components (more general types of drugs)
+	//Clinical Drug components (more general types of drugs)
 	static Map<String, DosedComponent> dosedComponentMap = new HashMap<String, DosedComponent>(); //ingredients toString +doseLabel hashed as key
 	static Map<String, FormedComponent> formedComponentMap = new HashMap<String, FormedComponent>(); //ingredients toString +formLabel & hashed as key
 	
@@ -203,18 +203,18 @@ public class Ontology {
 	}
 
 
-	static NonbrandedDrug findOrCreateNonbrandedDrug(BrandedDrug brandedDrug){
+	static ClinicalDrug findOrCreateClinicalDrug(BrandedDrug brandedDrug){
 		String mapKey = Utils.hash(brandedDrug.getForm().toString() + brandedDrug.getIngredientDoseMap().toString() + brandedDrug.getSpecificIngredientDoseMap().toString()); 
-		NonbrandedDrug matchingNonbrandedDrug = nonbrandedDrugMap.get(mapKey); //find potentially matching NonbrandedDrug
-		if (matchingNonbrandedDrug==null){ //if doesn't exist, create it and put it in map
-			matchingNonbrandedDrug = new NonbrandedDrug(brandedDrug.getForm(),  //add maps and sets that we have already from clinicaldrug 
+		ClinicalDrug matchingClinicalDrug = clinicalDrugMap.get(mapKey); //find potentially matching ClinicalDrug
+		if (matchingClinicalDrug==null){ //if doesn't exist, create it and put it in map
+			matchingClinicalDrug = new ClinicalDrug(brandedDrug.getForm(),  //add maps and sets that we have already from clinicaldrug 
 					brandedDrug.getIngredientDoseMap(), 
 					brandedDrug.getSpecificIngredientDoseMap(), 
 					brandedDrug.getIngredientsSet(), 
 					brandedDrug.getSpecificIngredientSet()); 
-			nonbrandedDrugMap.put(mapKey, matchingNonbrandedDrug);
+			clinicalDrugMap.put(mapKey, matchingClinicalDrug);
 		}
-		return matchingNonbrandedDrug; 
+		return matchingClinicalDrug; 
 	}
 	
 
@@ -223,11 +223,11 @@ public class Ontology {
 	
 	//once ALL BrandedDrugs are made, use the following to generate the more general drug entities 
 
-	static void generateNonbrandedDrugMap(){
-		//iterate over all BrandedDrugs in Map and fill up the NonbrandedDrugMap 
+	static void generateClinicalDrugMap(){
+		//iterate over all BrandedDrugs in Map and fill up the ClinicalDrugMap 
 		for (BrandedDrug value : brandedDrugMap.values()) {
-			NonbrandedDrug nonbrandedDrug = findOrCreateNonbrandedDrug(value);
-			value.nonbrandedDrugBelongsTo = nonbrandedDrug; //and put the branded drug as under the nonbranded drug
+			ClinicalDrug clinicalDrug = findOrCreateClinicalDrug(value);
+			value.clinicalDrugBelongsTo = clinicalDrug; //and put the branded drug as under the clinical drug
 		}
 	}
 
@@ -235,7 +235,7 @@ public class Ontology {
 		for (BrandedDrug value : brandedDrugMap.values()) {
 			findOrCreateDosedComponent(value.getIngredientDoseMap());
 		}
-		for (NonbrandedDrug value : nonbrandedDrugMap.values()){
+		for (ClinicalDrug value : clinicalDrugMap.values()){
 			findOrCreateDosedComponent(value.getIngredientDoseMap());
 		}
 	}
@@ -252,11 +252,11 @@ public class Ontology {
 			}
 	}
 	
-	static void generateDosedSpecificComponentMap(){ //do this for branded and nonbranded sides because their dosedcomponents are not equivalent ??
+	static void generateDosedSpecificComponentMap(){ //do this for branded and clinical sides because their dosedcomponents are not equivalent ??
 		for (BrandedDrug value : brandedDrugMap.values()) {
 			findOrCreateDosedSpecificComponent(value.getSpecificIngredientDoseMap());
 			}
-		for (NonbrandedDrug value : nonbrandedDrugMap.values()) {
+		for (ClinicalDrug value : clinicalDrugMap.values()) {
 			findOrCreateDosedSpecificComponent(value.getSpecificIngredientDoseMap());
 			}
 	}
@@ -288,17 +288,17 @@ public class Ontology {
 	
 	//_______________________________________________________________________________________________________________________________________________
 	
-	//once all nonbranded drugs are made, link BrandedDrugs to NonbrandedDrug
-	static void linkNonbrandedDrugsWithBrandedDrugs(){
-		for (NonbrandedDrug nonbrandedDrug : nonbrandedDrugMap.values()) { //for each NonbrandedDrug, go through all BrandedDrugs and find matching ones  	 
+	//once all clinical drugs are made, link BrandedDrugs to ClinicalDrug
+	static void linkClinicalDrugsWithBrandedDrugs(){
+		for (ClinicalDrug clinicalDrug : clinicalDrugMap.values()) { //for each ClinicalDrug, go through all BrandedDrugs and find matching ones  	 
 			for(BrandedDrug brandedDrug : brandedDrugMap.values()){
 				//for them to match, we need the same form, ingredients and doses, and specificingredients and doses 
-				if (nonbrandedDrug.getForm().toString().equals(brandedDrug.getForm().toString()) 
-						&& nonbrandedDrug.getIngredientDoseMap().toString().equals(brandedDrug.getIngredientDoseMap().toString()) 
-						&& nonbrandedDrug.getSpecificIngredientDoseMap().toString().equals(brandedDrug.getSpecificIngredientDoseMap().toString())){
+				if (clinicalDrug.getForm().toString().equals(brandedDrug.getForm().toString()) 
+						&& clinicalDrug.getIngredientDoseMap().toString().equals(brandedDrug.getIngredientDoseMap().toString()) 
+						&& clinicalDrug.getSpecificIngredientDoseMap().toString().equals(brandedDrug.getSpecificIngredientDoseMap().toString())){
 					//if these three are all equal, then make the link
-					brandedDrug.nonbrandedDrugBelongsTo=nonbrandedDrug;
-					nonbrandedDrug.matchingBrandedDrugs.add(brandedDrug);	
+					brandedDrug.clinicalDrugBelongsTo=clinicalDrug;
+					clinicalDrug.matchingBrandedDrugs.add(brandedDrug);	
 				}
 			}
 		}
@@ -319,11 +319,11 @@ public class Ontology {
 	}
 	
 	//TODO not working!!
-	//put DosedSpecificComponents as under their matching DosedComponent (for both Branded and nonbranded sides!) 
+	//put DosedSpecificComponents as under their matching DosedComponent (for both Branded and clinical drugs!) 
 	static void organizeDosedSpecificComponents(){
 		for (BrandedDrug value : brandedDrugMap.values()) { //go through all BrandedDrugs
 			if(value.getIngredientDoseMap().size()==1 && value.getSpecificIngredientDoseMap().size()==1){ 
-				//do this for nonbranded side: get specific components and put under general component
+				//do this for clinica drug side: get specific components and put under general component
 				DosedComponent dosedComponent = findOrCreateDosedComponent(value.getIngredientDoseMap());
 				DosedSpecificComponent dosedSpecificComponent = findOrCreateDosedSpecificComponent(value.getSpecificIngredientDoseMap());
 				dosedComponent.matchingDosedSpecificComponents.add(dosedSpecificComponent);
@@ -339,11 +339,11 @@ public class Ontology {
 	}
 	
 
-	//put FormedSpecificComponents as under their matching FormedComponent, for both branded and nonbranded sides
+	//put FormedSpecificComponents as under their matching FormedComponent, for both branded and clinical sides
 	static void organizeFormedSpecificComponents(){
 		for (BrandedDrug value : brandedDrugMap.values()) {
 			if(value.getIngredientsSet().size()==1 && value.getSpecificIngredientSet().size()==1){ 
-				//nonbranded side: get the components and put the specific one under the general one 
+				//clinical side: get the components and put the specific one under the general one 
 				FormedSpecificComponent formedSpecificComponent = findOrCreateFormedSpecificComponent(value);
 				FormedComponent formedComponent = findOrCreateFormedComponent(value.getForm(), value.getIngredientsSet());
 				formedComponent.matchingFormedSpecificComponents.add(formedSpecificComponent);

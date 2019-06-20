@@ -27,7 +27,9 @@ public class BrandedDosedSpecificComponent implements IHasDosedSpecificIngredien
 			oneLine.append(CSV_SEPARATOR);
 			oneLine.append(dosedSpecificComponentEntry.getKey().specificIngredientName.toString().length()==0? "" : dosedSpecificComponentEntry.getKey().specificIngredientName.toString()); //specific ingredient name
 			oneLine.append(CSV_DOSE_SEPARATOR);
-			oneLine.append(dosedSpecificComponentEntry.getValue().toString().length()==0? "" : dosedSpecificComponentEntry.getValue().toString()); //dose
+			oneLine.append(dosedSpecificComponentEntry.getValue().doseNumber.length()==0? "" : dosedSpecificComponentEntry.getValue().doseNumber); //dose number
+			oneLine.append(CSV_DOSE_SEPARATOR);
+			oneLine.append(dosedSpecificComponentEntry.getValue().unit.unitLabel.length()==0? "" : dosedSpecificComponentEntry.getValue().unit.unitLabel.toString()); //unit
 		}
 	}
 	

@@ -5,7 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class NonbrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIngredients, IHasUndosedIngredients, IHasDosedSpecificIngredients, IHasDosedIngredients { 
+public class ClinicalDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIngredients, IHasUndosedIngredients, IHasDosedSpecificIngredients, IHasDosedIngredients { 
 	FormedComponent formedComponent = new FormedComponent(); //for multiple inheritance, FormedComponent is like another superclass of NonBrandedDrug 
 	DosedComponent dosedComponent = new DosedComponent(); //this object will contain the map of DosedIngredients
 	DosedSpecificComponent dosedSpecificComponent = new DosedSpecificComponent();
@@ -15,10 +15,10 @@ public class NonbrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecific
 	Set<BrandedDrug> matchingBrandedDrugs = new HashSet<BrandedDrug>();
 
 	//constructors
-	public NonbrandedDrug(){
+	public ClinicalDrug(){
 	}
 
-	public NonbrandedDrug(Form form, Map<Ingredient, Dose> ingredientsDoses, 
+	public ClinicalDrug(Form form, Map<Ingredient, Dose> ingredientsDoses, 
 			Map<SpecificIngredient, Dose> specificIngredientsDoses, 
 			Set<Ingredient> ingredientsSet, 
 			Set<SpecificIngredient> specificIngredientsSet) {

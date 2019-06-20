@@ -15,8 +15,8 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 	Boolean doseNeedsChecking = false;
 	Boolean brandNameNeedsChecking = false;
 	
-	// link with NonbrandedDrug
-	NonbrandedDrug nonbrandedDrugBelongsTo = new NonbrandedDrug();
+	// link with ClinicalDrug
+	ClinicalDrug clinicalDrugBelongsTo = new ClinicalDrug();
 
 	//constructors
 
@@ -33,7 +33,7 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 
 	@Override
 	public Form getForm() {
-		return nonbrandedDrugBelongsTo.getForm();
+		return clinicalDrugBelongsTo.getForm();
 	}
 
 	@Override
@@ -45,11 +45,11 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 	@Override
 	public void addSpecIngredientWithDose(SpecificIngredient specIngredient, Dose dose) {
 		//build the dosed components. add to both nonbranded and branded components!
-		nonbrandedDrugBelongsTo.dosedSpecificComponent.specificIngredsAndDoses.put(specIngredient, dose);
+		clinicalDrugBelongsTo.dosedSpecificComponent.specificIngredsAndDoses.put(specIngredient, dose);
 		brandedDosedSpecificComponent.specificIngredsAndDoses.put(specIngredient, dose); 
 
 		//build the formed components 
-		nonbrandedDrugBelongsTo.formedSpecificComponent.containedSpecificIngredients.add(specIngredient);
+		clinicalDrugBelongsTo.formedSpecificComponent.containedSpecificIngredients.add(specIngredient);
 		brandedFormedSpecificComponent.containedSpecificIngredients.add(specIngredient);
 	}
 
@@ -62,8 +62,8 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 	@Override
 	public void addIngredientWithDose(Ingredient ingredient, Dose dose) {
 		//add new ingredient to both Map and Set
-		nonbrandedDrugBelongsTo.dosedComponent.ingredientsAndDoses.put(ingredient, dose); //dosed stuff
-		nonbrandedDrugBelongsTo.formedComponent.containedIngredients.add(ingredient); //formed stuff
+		clinicalDrugBelongsTo.dosedComponent.ingredientsAndDoses.put(ingredient, dose); //dosed stuff
+		clinicalDrugBelongsTo.formedComponent.containedIngredients.add(ingredient); //formed stuff
 
 		brandedDosedComponent.ingredientsAndDoses.put(ingredient, dose); //build branded components too 
 		brandedFormedComponent.addIngredient(ingredient);
@@ -78,7 +78,7 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 
 	@Override
 	public void addIngredient(Ingredient ingredient) {
-		nonbrandedDrugBelongsTo.formedComponent.addIngredient(ingredient);
+		clinicalDrugBelongsTo.formedComponent.addIngredient(ingredient);
 		brandedFormedComponent.addIngredient(ingredient);
 	}
 	
@@ -91,7 +91,7 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 	
 	@Override
 	public void addSpecificIngredient(SpecificIngredient specificIngredient) {
-		nonbrandedDrugBelongsTo.formedSpecificComponent.addSpecificIngredient(specificIngredient);	
+		clinicalDrugBelongsTo.formedSpecificComponent.addSpecificIngredient(specificIngredient);	
 		brandedFormedSpecificComponent.addSpecificIngredient(specificIngredient);
 	}
 	
@@ -119,8 +119,8 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 	}
 
 	public void setForm(Form form){
-		nonbrandedDrugBelongsTo.formedComponent.form=form;
-		nonbrandedDrugBelongsTo.formedSpecificComponent.form=form;
+		clinicalDrugBelongsTo.formedComponent.form=form;
+		clinicalDrugBelongsTo.formedSpecificComponent.form=form;
 		brandedFormedComponent.setForm(form);
 		brandedFormedSpecificComponent.form=form;
 	}
@@ -177,16 +177,16 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 	@Override
 	public String toString() {
 		String ingredientsString = "";
-		for (Map.Entry<Ingredient, Dose> entry : nonbrandedDrugBelongsTo.dosedComponent.ingredientsAndDoses.entrySet()) {
+		for (Map.Entry<Ingredient, Dose> entry : clinicalDrugBelongsTo.dosedComponent.ingredientsAndDoses.entrySet()) {
 			ingredientsString += entry.getKey() + " at dose "+entry.getValue() + ", ";
 		}
 		String specificIngredientsString ="";
-		for (Map.Entry<SpecificIngredient, Dose> entry : nonbrandedDrugBelongsTo.dosedSpecificComponent.specificIngredsAndDoses.entrySet()) {
+		for (Map.Entry<SpecificIngredient, Dose> entry : clinicalDrugBelongsTo.dosedSpecificComponent.specificIngredsAndDoses.entrySet()) {
 			specificIngredientsString += entry.getKey() + " at dose " + entry.getValue() + ", ";
 		}
 
 		String formedSpecIngredientsString = "";
-		for (SpecificIngredient specIngred: nonbrandedDrugBelongsTo.formedSpecificComponent.containedSpecificIngredients) {
+		for (SpecificIngredient specIngred: clinicalDrugBelongsTo.formedSpecificComponent.containedSpecificIngredients) {
 			formedSpecIngredientsString += specIngred + ", ";
 		}
 
@@ -196,18 +196,18 @@ public class BrandedDrug implements IHasMapKey, IHasForm, IHasUndosedSpecificIng
 		}
 
 		String formedIngredientsString = "";
-		for (Ingredient ingred: nonbrandedDrugBelongsTo.formedComponent.containedIngredients) {
+		for (Ingredient ingred: clinicalDrugBelongsTo.formedComponent.containedIngredients) {
 			formedIngredientsString += ingred + ", ";
 		}
 		return "\nIngredients & doses:\t " + ingredientsString 
 				+ "\nSpecificIngredients & doses:\t" + specificIngredientsString
 				+ "\n*FormedSpecificComponent: SpecificIngredients:\t" + formedSpecIngredientsString
-				+ "\n\t\tForm: \t" + nonbrandedDrugBelongsTo.formedSpecificComponent.form.toString()
+				+ "\n\t\tForm: \t" + clinicalDrugBelongsTo.formedSpecificComponent.form.toString()
 				+ "\n*FormedComponent: Ingredients: \t" + formedIngredientsString
-				+ "\n\t\tForm: \t" + nonbrandedDrugBelongsTo.formedComponent.form.toString()
+				+ "\n\t\tForm: \t" + clinicalDrugBelongsTo.formedComponent.form.toString()
 				+ "\n---\nBrandedFormedComponent: Ingredients: " + brandedForm
 				+ "\nBrandedFormedComponent Brand: " + brandedFormedComponent.brandName
-				+ "\nForm:\t" + nonbrandedDrugBelongsTo.formedComponent.form.toString() 
+				+ "\nForm:\t" + clinicalDrugBelongsTo.formedComponent.form.toString() 
 				+ "\nBrandName:\t" + brandName 
 				+ "\nORIGINAL LABEL: " + label+"\n\n";
 	}

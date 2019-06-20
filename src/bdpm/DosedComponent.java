@@ -10,7 +10,7 @@ public class DosedComponent implements IHasMapKey, IHasDosedIngredients  {
 	Map<Ingredient,Dose> ingredientsAndDoses = new HashMap<Ingredient,Dose>();
 	Set<DosedSpecificComponent> matchingDosedSpecificComponents = new HashSet<DosedSpecificComponent>();
 	
-	Set<NonbrandedDrug> matchingNonbrandedDrugs = new HashSet<NonbrandedDrug>();
+	Set<ClinicalDrug> matchingNonbrandedDrugs = new HashSet<ClinicalDrug>();
 	
 	//constructors
 	public DosedComponent(Map<Ingredient, Dose> ingredientsWithDoses) {
